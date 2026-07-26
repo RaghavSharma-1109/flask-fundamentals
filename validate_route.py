@@ -7,17 +7,10 @@ def add_item():
     data = request.json
     if not data or 'name' not in data  :
         return jsonify({'error':"name is required"}), 400
-    add={}
-    id = len(items) + 1
-    if not items:
-        id = 1
-        add['data'] = data
-        add['id'] = id
-    add['data'] = data
-    add['id'] = id
+    new_id = len(items) + 1
+    add = {'data': data, 'id': new_id}
     items.append(add)
-    
-    return items
+    return jsonify(add), 201
 
 @app.route('/items')
 def get_item():
