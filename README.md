@@ -2,7 +2,7 @@
 
 Hands-on practice repo for learning Flask — building toward backend system design and REST API fundamentals.
 
-Part of a structured internship-prep program (Phase 2). Each "Day" folder/commit represents one focused session, tested against real HTTP traffic via `curl`.
+Part of a structured internship-prep program (Phase 2). Each "Day" represents one focused session, tested against real HTTP traffic via `curl` and browser `fetch()`.
 
 ## Progress
 
@@ -12,6 +12,16 @@ Part of a structured internship-prep program (Phase 2). Each "Day" folder/commit
 - Dynamic routes with URL parameters (`<param>`)
 - Handling POST bodies via `request.json`
 - Tested manually using `curl.exe` (Windows PowerShell + curl JSON body via `-d "@body.json"` workaround for quoting issues)
+
+### Day 2 — In-Memory CRUD API
+- Full CRUD on `/items`: `POST`, `GET` (all), `GET` by id, `DELETE`
+- Input validation with correct status codes (`400` invalid input, `201` created, `404` not found)
+- Four real bugs found and fixed independently:
+  - Validation running in the wrong order relative to input parsing
+  - `NameError` from incorrect id-generation variable scope
+  - Used `.pop()` where `.remove()` was needed (index vs. value semantics)
+  - URL parameter type mismatch — fixed using the `<int:id>` route converter
+- Tested via `curl` and browser DevTools `fetch()`
 
 ## Running Locally
 
@@ -25,14 +35,17 @@ Server runs on `http://127.0.0.1:5000` by default.
 ### Example requests
 
 ```bash
-# GET example
-curl http://127.0.0.1:5000/
+# GET all items
+curl http://127.0.0.1:5000/items
 
-# GET with dynamic param
-curl http://127.0.0.1:5000/user/123
+# GET a single item by id
+curl http://127.0.0.1:5000/items/1
 
-# POST with JSON body (Windows-safe method)
-curl.exe -X POST http://127.0.0.1:5000/data -H "Content-Type: application/json" -d "@body.json"
+# POST a new item (Windows-safe method)
+curl.exe -X POST http://127.0.0.1:5000/items -H "Content-Type: application/json" -d "@body.json"
+
+# DELETE an item by id
+curl.exe -X DELETE http://127.0.0.1:5000/items/1
 ```
 
 ## Notes
@@ -41,9 +54,11 @@ curl.exe -X POST http://127.0.0.1:5000/data -H "Content-Type: application/json" 
 
 ## Roadmap
 
-- [ ] Day 2 — (add once decided: query params / error handling / templates / etc.)
+- [x] Day 1 — Routing basics
+- [x] Day 2 — In-memory CRUD API
+- [ ] Wire into real HTTP calls against `api-data-fetcher` (live endpoints, not in-memory)
+- [ ] Error handling patterns + Flask-specific pytest tests
 - [ ] Flask-SQLAlchemy basics
-- [ ] REST API design patterns
 - [ ] Deployment basics
 
 ---
