@@ -1,39 +1,55 @@
 import json
-from flask import Flask , jsonify, request 
+from os import name
+from flask import Flask , jsonify, request
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy 
 
 app = Flask(__name__)
-items = []
+app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///items.db'
+db = SQLAlchemy(app)
+migrate=Migrate(app,db)
+class Item(db.Model):
+    id = db.Column(db.Integer,primary_key=True)
+    name = db.Column(db.String(80),nullable=False)
+    price = db.Column(db.Float,nullable=False)
+
 @app.route('/items' , methods=['POST'])
 def post_item():
     data = request.json
     if not data or 'name' not in data:
         return jsonify({'error': 'name is required'}), 400
-    id = len(items) +1
-    add_item = {'data': data, 'id': id}
-    items.append(add_item)
+    new_item=Item(name=data['name'], price = data['price'])
+    #comminting: sutomatically adds id
+    db.session.add(new_item)
+    db.session.commit()
 
-    return jsonify(add_item), 201
+    return jsonify({'id':new_item.id, 'name':new_item.name, 'price': new_item.price}), 201
 
 @app.route('/items')
 def get_item():
-    if not items:
-        return jsonify({"'error": 'No items'})
-    return jsonify(items)
-
+    data = Item.query.all()
+    items = []
+    for entry in data:
+        new_items = {'id':entry.id,'name':entry.name, 'price':entry.price}
+        items.append(new_items)
+    return jsonify(items), 200
+            
 @app.route('/items/<int:id>')
 def get_item_by_id(id):
-    for item in items:
-        if item['id'] == id:
-            return jsonify(item), 200
-    return jsonify({"error":'item not found'}), 404
+    entry = Item.query.get(id)
+    if not entry:
+        return jsonify({"error": f"No item found by id: {id}"}), 404
+    return jsonify({'id': entry.id, 'name': entry.name, 'price': entry.price}), 200
 
-@app.route('/items/<int:id>', methods=['DELETE'])
-def delete_item_by_id(id):
-    for item in items:
-        if item['id'] == id:
-            items.remove(item)
-            return jsonify(item), 200
-    return jsonify({"error":'item not found'}), 404
+@app.route('/items/<int:id>',methods=['DELETE'])
+def del_item_by_id(id):
+    entry = Item.query.get(id)
+    if not entry:
+        return jsonify({"error": f"No item found by id: {id}"}), 404
+    db.session.delete(entry)
+    db.session.commit()
+    return jsonify({"message": f"Item by id: {id} DELETED successfully"})
+
 
 if __name__=='__main__':
     app.run(debug=True)
