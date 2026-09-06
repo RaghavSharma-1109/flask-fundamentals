@@ -1,5 +1,4 @@
 import json
-from os import name
 from flask import Flask , jsonify, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy 
@@ -16,10 +15,10 @@ class Item(db.Model):
 @app.route('/items' , methods=['POST'])
 def post_item():
     data = request.json
-    if not data or 'name' not in data:
+    if not data or 'name' not in data or 'price' not in data:
         return jsonify({'error': 'name is required'}), 400
     new_item=Item(name=data['name'], price = data['price'])
-    #comminting: sutomatically adds id
+    #comminting: automatically adds id
     db.session.add(new_item)
     db.session.commit()
 
