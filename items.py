@@ -1,3 +1,4 @@
+import json
 from flask import Blueprint, jsonify,request
 from extensions import db
 from model import Item
@@ -54,3 +55,26 @@ def del_item_by_id(id):
 
     return jsonify({'message':f'item by id: {id} successfully deleted'}), 200
 
+@items_bp.route('/items/<int:id>/',methods = ['PUT'])
+def put_by_id(id):
+    required = {'price', 'name'}
+    data = request.json
+    item=Item.query.get(id)
+    if not item:
+        return jsonify({'error':f'Item with id: {id} not found'}), 404
+    keys = list(data.keys())
+    if set(keys) != required:
+        return jsonify({'error':'field missing or invalid field'}), 400
+    for key in keys: 
+        if key == 'price' and not isinstance(data[key],(int,float)):
+            return jsonify({'error': 'Invalid data type for field: price'}), 400
+        if key == 'price' and data[key]<=0:
+            return jsonify({'error': 'Invalid value for field: price'}), 400
+        if key == 'name' and not isinstance(data[key],str):
+            return jsonify({'error': 'Invalid value for field: name'}), 400
+        setattr(item,key,data[key])        
+
+    db.session.commit()
+
+    return jsonify({'message':'field updated'}), 200
+    
