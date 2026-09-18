@@ -78,3 +78,31 @@ def put_by_id(id):
 
     return jsonify({'message':'field updated'}), 200
     
+@items_bp.route('/items/<int:id>',methods=['PATCH'])
+def patch_by_id(id):
+    required = {'price', 'name'}
+    data = request.json
+    item=Item.query.get(id)
+    if not item:
+        return jsonify({'error':f'Item with id: {id} not found'}), 404
+    keys = list(data.keys())
+    if not keys:
+        return jsonify({'error':'Empty fields'}), 400
+    if not set(keys).issubset(required):
+        return jsonify({'error': 'Invalid or missing field'}), 400
+    if 'id' in keys:
+        return jsonify({'error': 'id can not be patched'}), 400
+    for key in keys:
+        if key == 'price' and not isinstance(data[key],(int,float)):
+            return jsonify({'error': 'Invalid data type for field: price'}), 400
+        if key == 'price' and data[key]<=0:
+            return jsonify({'error': 'Invalid value for field: price'}), 400
+        if key == 'name' and not isinstance(data[key],str):
+            return jsonify({'error': 'Invalid value for field: name'}), 400
+        
+
+        setattr(item,key,data[key])
+    
+    db.session.commit()
+
+    return jsonify({'message':'patched successfully'}), 200
