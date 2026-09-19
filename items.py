@@ -90,8 +90,6 @@ def patch_by_id(id):
         return jsonify({'error':'Empty fields'}), 400
     if not set(keys).issubset(required):
         return jsonify({'error': 'Invalid or missing field'}), 400
-    if 'id' in keys:
-        return jsonify({'error': 'id can not be patched'}), 400
     for key in keys:
         if key == 'price' and not isinstance(data[key],(int,float)):
             return jsonify({'error': 'Invalid data type for field: price'}), 400
