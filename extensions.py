@@ -5,7 +5,7 @@ from functools import wraps
 import jwt
 db = SQLAlchemy()
 migrate =Migrate()
-
+# f ==> route
 def dec(f):
     @wraps(f)
     def wrapper(*args, **kwargs):

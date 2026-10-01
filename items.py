@@ -1,67 +1,72 @@
-import json
 from flask import Blueprint, jsonify,request
-from extensions import db
+from extensions import db,dec
 from model import Item
 
 items_bp = Blueprint('items',__name__)
 
 @items_bp.route('/items')
-def get_item():
-    data=Item.query.all()
+@dec
+def get_item(user_id):
+    data=Item.query.filter_by(user_id=user_id).all()
+
     items=[]
     for item in data:
         new_item = {'id':item.id, 'name':item.name, 'price': item.price}
         items.append(new_item)
     
     return jsonify(items),200
-
 @items_bp.route('/items/<int:id>')
-def get_item_by_id(id):
+@dec
+def get_item_by_id(id,user_id):
     data = Item.query.get(id)
     if not data:
         return jsonify({'error':f'item by id:{id} not found'}), 400
+    if data.user_id != user_id:
+        return jsonify({'error': 'Invalid user id'}), 404
+    
     return jsonify({'id':data.id,'name':data.name,'price':data.price}), 200
 
 @items_bp.route('/items',methods=['POST'])
-def add_item():
+@dec
+def add_item(user_id):
     data = request.json
     if not data or not isinstance(data,dict):
         return jsonify({"error":'Invalid request data'}), 400
     if 'name' not in data or 'price' not in data:
         return jsonify({'error':'Missing a Key in data'}), 400
-    new_item = Item(name=data['name'], price=data['price'])
+    new_item = Item(name=data['name'], price=data['price'],user_id=user_id)
     db.session.add(new_item)
     db.session.commit()
 
-    return jsonify({'id':new_item.id, 'name':new_item.name, 'price': new_item.price}), 201
+    return jsonify({'user_id':user_id,'id':new_item.id, 'name':new_item.name, 'price': new_item.price}), 201
 
-# @items_bp.route('/items/<int:id>', mwthods=['POST'])
-# def add_item_by_id(id):
-#     data = request.json
-#     if not data or not isinstance(data,dict):
-#         return jsonify({"error":'Invalid request data'}), 400
-#     if 'name' not in data or 'price' not in data:
-#         return jsonify({'error':'Missing a Key in data'}), 400
-#     if Item.query.get(id):
-#         return jsonify({'error': f'Item by id:{id} already exists'}), 400
+
     
 @items_bp.route('/items/<int:id>',methods=['DELETE'])
-def del_item_by_id(id):
+@dec
+def del_item_by_id(id,user_id):
     entry=Item.query.get(id)
     if not entry:
         return jsonify({'error':f"item by id:{id} does not exists"}), 400
+    if entry.user_id != user_id:
+        return jsonify({'error': 'Invalid id'}), 404
+    
     db.session.delete(entry)
     db.session.commit()
 
     return jsonify({'message':f'item by id: {id} successfully deleted'}), 200
 
 @items_bp.route('/items/<int:id>/',methods = ['PUT'])
-def put_by_id(id):
+@dec
+def put_by_id(id,user_id):
     required = {'price', 'name'}
     data = request.json
     item=Item.query.get(id)
     if not item:
         return jsonify({'error':f'Item with id: {id} not found'}), 404
+    if item.user_id != user_id:
+        return jsonify({'error': 'Invalid id'}), 404
+    
     keys = list(data.keys())
     if set(keys) != required:
         return jsonify({'error':'field missing or invalid field'}), 400
@@ -79,12 +84,16 @@ def put_by_id(id):
     return jsonify({'message':'field updated'}), 200
     
 @items_bp.route('/items/<int:id>',methods=['PATCH'])
-def patch_by_id(id):
+@dec
+def patch_by_id(id,user_id):
     required = {'price', 'name'}
     data = request.json
     item=Item.query.get(id)
     if not item:
         return jsonify({'error':f'Item with id: {id} not found'}), 404
+    if item.user_id != user_id:
+        return jsonify({'error': 'Invalid id'}), 404
+    
     keys = list(data.keys())
     if not keys:
         return jsonify({'error':'Empty fields'}), 400

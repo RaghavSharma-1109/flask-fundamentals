@@ -1,4 +1,4 @@
-from flask import Blueprint,request,jsonify
+from flask import Blueprint,request,jsonify,current_app
 from extensions import db
 from model import User
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -51,13 +51,13 @@ def log_user():
         return jsonify({'error':'Invalid username or password'}), 401
     if not check_password_hash(entry.hash_password, password):
         return jsonify({'error':'Invalid username or password'}), 401
-    
+    secret_key = current_app.config['SECRET_KEY']
     token = jwt.encode(
         {
             "user_id":entry.id,
             "exp":datetime.datetime.utcnow() + datetime.timedelta(hours=1)
         },
-        "Navier-stokes-011235",
+        secret_key,
         algorithm="HS256"
     )
 

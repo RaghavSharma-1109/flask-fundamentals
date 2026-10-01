@@ -2,7 +2,7 @@ from extensions import db,migrate
 from items import items_bp
 from auth import user_bp
 from model import Item,User
-from flask import Flask
+from flask import Flask 
 
 def create_app():
     app = Flask(__name__)
