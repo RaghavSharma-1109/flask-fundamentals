@@ -2,3 +2,4 @@ instance/
 *.db
 __pychache__/
 *.pyc
+.env
