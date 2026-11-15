@@ -56,7 +56,7 @@ def del_item_by_id(id,user_id):
 
     return jsonify({'message':f'item by id: {id} successfully deleted'}), 200
 
-@items_bp.route('/items/<int:id>/',methods = ['PUT'])
+@items_bp.route('/items/<int:id>',methods = ['PUT'])
 @dec
 def put_by_id(id,user_id):
     required = {'price', 'name'}
