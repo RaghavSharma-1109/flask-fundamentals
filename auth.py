@@ -55,7 +55,7 @@ def log_user():
     token = jwt.encode(
         {
             "user_id":entry.id,
-            "exp":datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+            "exp":datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
         },
         secret_key,
         algorithm="HS256"
